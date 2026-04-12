@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# 仮想環境
+venv/
+.env
+
+# DB
+data/
+
+# Docker
+*.log
+
+# OS
+.DS_Store
