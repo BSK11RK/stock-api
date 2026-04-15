@@ -63,3 +63,30 @@ def delete_stock(db: Session, stock_id: int, user_id: int):
         db.delete(stock)
         db.commit()
     return stock
+
+
+# ウォッチリスト
+def create_watchlist(db: Session, symbol: str, user_id: int):
+    watch = models.WatchList(symbol=symbol, user_id=user_id)
+    db.add(watch)
+    db.commit()
+    db.refresh(watch)
+    return watch
+
+
+# 一覧取得
+def get_watchlists(db: Session, user_id: int):
+    return db.query(models.WatchList) \
+        .filter(models.WatchList.user_id == user_id).all()
+        
+        
+# 削除
+def delete_watchlist(db: Session, watch_id: int, user_id: int):
+    watch = db.query(models.WatchList) \
+        .filter(models.WatchList.id == watch_id,
+                models.WatchList.user_id == user_id).first()
+        
+    if watch:
+        db.delete(watch)
+        db.commit()
+    return watch

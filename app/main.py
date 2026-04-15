@@ -137,3 +137,36 @@ def delete_stock(
         raise HTTPException(status_code=404, detail="Stock not found")
     
     return {"message": "Deleted successfully"}
+
+
+# ウォッチリスト登録
+@app.post("/watchlist", response_model=schemas.WatchListResponse)
+def add_watchlist(
+    item: schemas.WatchListCreate,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    return crud.create_watchlist(db, item.symbol, user.id)
+
+
+# ウォッチリスト一覧
+@app.get("/watchlist", response_model=list[schemas.WatchListResponse])
+def get_watchlist(
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    return crud.get_watchlists(db, user.id)
+
+
+# ウォッチリスト削除
+@app.delete("/watchlist/{watch_id}")
+def delete_watchlist(
+    watch_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    watch = crud.delete_watchlist(db, watch_id, user.id)
+    
+    if not watch:
+        raise HTTPException(status_code=404, detail="Not found")
+    return {"message": "Deleted"}

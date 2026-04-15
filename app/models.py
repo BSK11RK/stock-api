@@ -20,3 +20,11 @@ class StockPrice(Base):
     price = Column(Float)
     timestamp = Column(DateTime, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey("users.id"))
+    
+    
+class WatchList(Base):
+    __tablename__ = "watchlists"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    symbol = Column(String, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))

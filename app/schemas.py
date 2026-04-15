@@ -34,3 +34,15 @@ class StockResponse(BaseModel):
     
     class Config:
         from_attributes = True
+        
+        
+class WatchListCreate(BaseModel):
+    symbol: str
+    
+    
+class WatchListResponse(BaseModel):
+    id: int 
+    symbol: str
+    
+    class Config:
+        from_attributes = True
