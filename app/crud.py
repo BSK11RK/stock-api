@@ -1,15 +1,33 @@
 # DB操作
 from sqlalchemy.orm import Session
 from app import models
+from app.auth import hash_password
 
 
-# 作成
-def create_stock_price(db: Session, symbol: str, price: float):
-    db_stock = models.StockPrice(symbol=symbol, price=price)
-    db.add(db_stock)
+# ユーザー作成
+def create_user(db: Session, username: str, password: str):
+    user = models.User(
+        username=username,
+        password=hash_password(password)
+    )
+    db.add(user)
     db.commit()
-    db.refresh(db_stock)
-    return db_stock
+    db.refresh(user)
+    return user
+
+
+def get_user(db: Session, username: str):
+    return db.query(models.User) \
+        .filter(models.User.username == username).first()
+
+
+# 株価
+def create_stock_price(db: Session, symbol: str, price: float):
+    stock = models.StockPrice(symbol=symbol, price=price)
+    db.add(stock)
+    db.commit()
+    db.refresh(stock)
+    return stock
 
 
 # 全件取得
