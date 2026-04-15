@@ -1,5 +1,5 @@
 # テーブル定義
-from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
 from datetime import datetime
 from app.db import Base
 
@@ -19,3 +19,4 @@ class StockPrice(Base):
     symbol = Column(String, index=True)
     price = Column(Float)
     timestamp = Column(DateTime, default=datetime.utcnow)
+    user_id = Column(Integer, ForeignKey("users.id"))

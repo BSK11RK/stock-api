@@ -22,8 +22,12 @@ def get_user(db: Session, username: str):
 
 
 # 株価
-def create_stock_price(db: Session, symbol: str, price: float):
-    stock = models.StockPrice(symbol=symbol, price=price)
+def create_stock_price(db: Session, symbol: str, price: float, user_id: int):
+    stock = models.StockPrice(
+        symbol=symbol, 
+        price=price,
+        user_id=user_id
+    )
     db.add(stock)
     db.commit()
     db.refresh(stock)
@@ -31,22 +35,29 @@ def create_stock_price(db: Session, symbol: str, price: float):
 
 
 # 全件取得
-def get_stock_prices(db: Session, symbol: str):
+def get_stock_prices(db: Session, symbol: str, user_id: int):
     return db.query(models.StockPrice) \
-    .filter(models.StockPrice.symbol == symbol) \
+    .filter(
+        models.StockPrice.symbol == symbol,
+        models.StockPrice.user_id == user_id
+    ) \
     .order_by(models.StockPrice.timestamp.desc()).all()
     
     
 # 1件取得
-def get_stock_by_id(db: Session, stock_id: int):
+def get_stock_by_id(db: Session, stock_id: int, user_id: int):
     return db.query(models.StockPrice) \
-        .filter(models.StockPrice.id == stock_id).first()
+        .filter(
+            models.StockPrice.id == stock_id,
+            models.StockPrice.user_id == user_id).first()
         
         
 # 削除
-def delete_stock(db: Session, stock_id: int):
+def delete_stock(db: Session, stock_id: int, user_id: int):
     stock = db.query(models.StockPrice) \
-        .filter(models.StockPrice.id == stock_id).first()
+        .filter(
+            models.StockPrice.id == stock_id,
+            models.StockPrice.user_id == user_id).first()
         
     if stock:
         db.delete(stock)

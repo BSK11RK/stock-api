@@ -77,7 +77,7 @@ def fetch_stock(
     
     if price is None:
         raise HTTPException(status_code=404, detail="Stock not found")
-    return crud.create_stock_price(db, symbol, price)
+    return crud.create_stock_price(db, symbol, price, user.id)
 
 
 # 認証追加
@@ -94,7 +94,7 @@ def fetch_multiple_stocks(
         if price is None:
             continue
         
-        stock = crud.create_stock_price(db, symbol, price)
+        stock = crud.create_stock_price(db, symbol, price, user.id)
         saved.append(stock)
     return saved
 
@@ -106,7 +106,7 @@ def read_stock(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)  
 ):
-    return crud.get_stock_prices(db, symbol)
+    return crud.get_stock_prices(db, symbol, user.id)
 
 
 # 1件取得
@@ -116,7 +116,7 @@ def read_stock_by_id(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)  
 ):
-    stock = crud.get_stock_by_id(db, stock_id)
+    stock = crud.get_stock_by_id(db, stock_id, user.id)
     
     if not stock:
         raise HTTPException(status_code=404, detail="Stock not found")
@@ -131,7 +131,7 @@ def delete_stock(
     db: Session = Depends(get_db),
     user=Depends(get_current_user) 
 ):
-    stock = crud.delete_stock(db, stock_id)
+    stock = crud.delete_stock(db, stock_id, user.id)
     
     if not stock:
         raise HTTPException(status_code=404, detail="Stock not found")
