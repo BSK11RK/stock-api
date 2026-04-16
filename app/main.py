@@ -11,7 +11,7 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 # 起動時にスケジューラ開始
@@ -46,13 +46,13 @@ def get_current_user(
 
 
 # ユーザー登録
-@app.post("/register")
+@app.post("/auth/register", tags=["auth"])
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db, user.username, user.password)
 
 
 # ログイン
-@app.post("/login", response_model=schemas.Token)
+@app.post("/auth/login", tags=["auth"], response_model=schemas.Token)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
@@ -67,7 +67,7 @@ def login(
 
 
 # 単体取得＆保存
-@app.post("/stocks/fetch", response_model=schemas.StockResponse)
+@app.post("/stocks/fetch", tags=["stocks"], response_model=schemas.StockResponse)
 def fetch_stock(
     symbol: str,
     db: Session = Depends(get_db),
@@ -81,7 +81,7 @@ def fetch_stock(
 
 
 # 認証追加
-@app.post("/stocks/fetch-multiple", response_model=list[schemas.StockResponse])
+@app.post("/stocks/fetch-multiple", tags=["stocks"], response_model=list[schemas.StockResponse])
 def fetch_multiple_stocks(
     request: schemas.MultipleStockCreate,
     db: Session = Depends(get_db),
@@ -99,8 +99,8 @@ def fetch_multiple_stocks(
     return saved
 
 
-# 履歴取得
-@app.get("/stocks/{symbol}", response_model=list[schemas.StockResponse])
+# 1件ずつシンボルで取得
+@app.get("/stocks/{symbol}", tags=["stocks"], response_model=list[schemas.StockResponse])
 def read_stock(
     symbol: str,
     db: Session = Depends(get_db),
@@ -109,8 +109,8 @@ def read_stock(
     return crud.get_stock_prices(db, symbol, user.id)
 
 
-# 1件取得
-@app.get("/stock/{stock_id}", response_model=schemas.StockResponse)
+# 1件ずつIDで取得
+@app.get("/stock/{stock_id}", tags=["stocks"], response_model=schemas.StockResponse)
 def read_stock_by_id(
     stock_id: int,
     db: Session = Depends(get_db),
@@ -120,12 +120,23 @@ def read_stock_by_id(
     
     if not stock:
         raise HTTPException(status_code=404, detail="Stock not found")
-    
     return stock
 
 
+# 複数取得
+@app.get("/stocks", tags=["stocks"], response_model=list[schemas.StockResponse])
+def read_stocks(
+    skip: int = 0,
+    limit: int = 10,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    stocks = crud.get_stocks(db, user.id, skip, limit)
+    return stocks
+
+
 # 削除
-@app.delete("/stock/{stock_id}")
+@app.delete("/stocks/{stock_id}", tags=["stocks"])
 def delete_stock(
     stock_id: int,
     db: Session = Depends(get_db),
@@ -140,7 +151,7 @@ def delete_stock(
 
 
 # ウォッチリスト登録
-@app.post("/watchlist", response_model=schemas.WatchListResponse)
+@app.post("/watchlist", tags=["watchlist"], response_model=schemas.WatchListResponse)
 def add_watchlist(
     item: schemas.WatchListCreate,
     db: Session = Depends(get_db),
@@ -150,16 +161,29 @@ def add_watchlist(
 
 
 # ウォッチリスト一覧
-@app.get("/watchlist", response_model=list[schemas.WatchListResponse])
+@app.get("/watchlist", tags=["watchlist"], response_model=list[schemas.WatchListResponse])
 def get_watchlist(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    return crud.get_watchlists(db, user.id)
+    watchlists = crud.get_watchlists(db, user.id)
+    result = []
+    
+    for w in watchlists:
+        price = stock_service.get_stock_price(w.symbol)
+        company_name = stock_service.get_company_name(w.symbol)
+        
+        result.append({
+            "id": w.id,
+            "symbol": w.symbol,
+            "company_name": company_name,
+            "price": price
+        })
+    return result
 
 
 # ウォッチリスト削除
-@app.delete("/watchlist/{watch_id}")
+@app.delete("/watchlist/{watch_id}", tags=["watchlist"])
 def delete_watchlist(
     watch_id: int,
     db: Session = Depends(get_db),

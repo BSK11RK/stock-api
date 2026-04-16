@@ -21,7 +21,7 @@ def get_user(db: Session, username: str):
         .filter(models.User.username == username).first()
 
 
-# 株価
+# 株価作成
 def create_stock_price(db: Session, symbol: str, price: float, user_id: int):
     stock = models.StockPrice(
         symbol=symbol, 
@@ -50,6 +50,14 @@ def get_stock_by_id(db: Session, stock_id: int, user_id: int):
         .filter(
             models.StockPrice.id == stock_id,
             models.StockPrice.user_id == user_id).first()
+        
+        
+# 全件取得
+def get_stocks(db: Session, user_id: int, skip: int, limit: int):
+    return db.query(models.StockPrice) \
+        .filter(models.StockPrice.user_id == user_id) \
+        .order_by(models.StockPrice.timestamp.desc()) \
+        .offset(skip).limit(limit).all()
         
         
 # 削除

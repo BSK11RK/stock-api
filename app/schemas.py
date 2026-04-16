@@ -23,10 +23,6 @@ class StockCreate(BaseModel):
     symbol: str
     
     
-class MultipleStockCreate(BaseModel):
-    symbols: List[str]
-    
-    
 class StockResponse(BaseModel):
     symbol: str
     price: float
@@ -36,6 +32,11 @@ class StockResponse(BaseModel):
         from_attributes = True
         
         
+class MultipleStockCreate(BaseModel):
+    symbols: List[str]
+        
+
+# ウォッチリスト
 class WatchListCreate(BaseModel):
     symbol: str
     
@@ -43,6 +44,8 @@ class WatchListCreate(BaseModel):
 class WatchListResponse(BaseModel):
     id: int 
     symbol: str
+    company_name: str
+    price: float | None
     
     class Config:
         from_attributes = True
