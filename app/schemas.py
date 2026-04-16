@@ -24,7 +24,9 @@ class StockCreate(BaseModel):
     
     
 class StockResponse(BaseModel):
+    id: int
     symbol: str
+    company_name: str
     price: float
     timestamp: datetime
     
