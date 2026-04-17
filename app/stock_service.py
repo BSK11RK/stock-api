@@ -2,6 +2,8 @@
 import yfinance as yf
 
 
+USD_TO_JPY = 150
+
 COMPANY_NAMES = {
     "AAPL": "Apple",
     "MSFT": "Microsoft",
@@ -28,6 +30,12 @@ COMPANY_NAMES = {
 
 def get_company_name(symbol: str):
     return COMPANY_NAMES.get(symbol, "Unknown")
+
+
+def convert_to_jpy(price_usd: float):
+    if price_usd is None:
+        return None
+    return int(round(price_usd * USD_TO_JPY))
 
 
 def get_stock_price(symbol: str):

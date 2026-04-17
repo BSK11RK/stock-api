@@ -27,7 +27,8 @@ class StockResponse(BaseModel):
     id: int
     symbol: str
     company_name: str
-    price: float
+    price_usd: float
+    price_jpy: int
     timestamp: datetime
     
     class Config:
@@ -47,7 +48,8 @@ class WatchListResponse(BaseModel):
     id: int 
     symbol: str
     company_name: str
-    price: float | None
+    price_usd: float | None
+    price_jpy: int | None
     
     class Config:
         from_attributes = True

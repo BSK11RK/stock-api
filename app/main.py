@@ -115,8 +115,9 @@ def read_stock_by_symbol(
         result.append({
             "id": s.id,
             "symbol": s.symbol,
-            "company_name": company_name,
-            "price": s.price,
+            "company_name": stock_service.get_company_name(s.symbol),
+            "price_usd": s.price,
+            "price_jpy": stock_service.convert_to_jpy(s.price), 
             "timestamp": s.timestamp
         })
     return result
@@ -137,7 +138,8 @@ def read_stock_by_id(
         "id": stock.id,
         "symbol": stock.symbol,
         "company_name": stock_service.get_company_name(stock.symbol),
-        "price": stock.price,
+        "price_usd": stock.price,
+        "price_jpy": stock_service.convert_to_jpy(stock.price),
         "timestamp": stock.timestamp
     }
 
@@ -155,12 +157,14 @@ def read_stocks(
     
     for s in stocks:
         company_name = stock_service.get_company_name(s.symbol)
+        price_jpy = stock_service.convert_to_jpy(s.price)
         
         result.append({
             "id": s.id,
             "symbol": s.symbol,
             "company_name": company_name,
-            "price": s.price,
+            "price_usd": s.price,
+            "price_jpy": price_jpy,
             "timestamp": s.timestamp
         })
     return result
@@ -188,7 +192,16 @@ def add_watchlist(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    return crud.create_watchlist(db, item.symbol, user.id)
+    watch = crud.create_watchlist(db, item.symbol, user.id)
+    price = stock_service.get_stock_price(watch.symbol)
+    
+    return {
+        "id": watch.id,
+        "symbol": watch.symbol,
+        "company_name": stock_service.get_company_name(watch.symbol),
+        "price_usd": price,
+        "price_jpy": stock_service.convert_to_jpy(price)
+    }
 
 
 # ウォッチリスト一覧
@@ -207,8 +220,9 @@ def get_watchlist(
         result.append({
             "id": w.id,
             "symbol": w.symbol,
-            "company_name": company_name,
-            "price": price
+            "company_name": stock_service.get_company_name(w.symbol),
+            "price_usd": price,
+            "price_jpy": stock_service.convert_to_jpy(price)
         })
     return result
 
