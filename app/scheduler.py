@@ -1,6 +1,6 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.db import SessionLocal
-from app import stock_service, crud
+from app import stock_service, crud, models
 
 
 # 定期取得する銘柄
@@ -24,4 +24,29 @@ def fetch_and_store():
 def start_scheduler():
     scheduler = BackgroundScheduler()
     scheduler.add_job(fetch_and_store, "interval", minutes=60)
+    scheduler.start()
+    
+    
+def check_alerts():
+    db = SessionLocal()
+    alerts = db.query(models.Alert).all()
+    
+    for alert in alerts:
+        price = stock_service.get_stock_price(alert.symbol)
+        
+        if price is None:
+            continue
+        
+        if alert.condition == "above" and price >= alert.target_price:
+            print(f"🔥 {alert.symbol} が {alert.target_price} 以上になりました！")
+
+        elif alert.condition == "below" and price <= alert.target_price:
+            print(f"🔥 {alert.symbol} が {alert.target_price} 以下になりました！")
+
+    db.close()
+    
+
+def start_scheduler():
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(check_alerts, "interval", minutes=1)
     scheduler.start()

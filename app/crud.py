@@ -98,3 +98,36 @@ def delete_watchlist(db: Session, watch_id: int, user_id: int):
         db.delete(watch)
         db.commit()
     return watch
+
+
+# アラート作成
+def create_alert(db: Session, data, user_id: int):
+    alert = models.Alert(
+        symbol=data.symbol,
+        target_price=data.target_price,
+        condition=data.condition,
+        user_id=user_id
+    )
+    db.add(alert)
+    db.commit()
+    db.refresh(alert)
+    return alert
+
+
+# アラート一覧
+def get_alerts(db: Session, user_id: int):
+    return db.query(models.Alert) \
+        .filter(models.Alert.user_id == user_id).all()
+        
+        
+# アラート削除
+def delete_alert(db: Session, alert_id: int, user_id: int):
+    alert = db.query(models.Alert) \
+        .filter(
+            models.Alert.id == alert_id,
+            models.Alert.user_id == user_id).first()
+        
+    if alert:
+        db.delete(alert)
+        db.commit()
+    return alert

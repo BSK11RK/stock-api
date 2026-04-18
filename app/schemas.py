@@ -53,3 +53,19 @@ class WatchListResponse(BaseModel):
     
     class Config:
         from_attributes = True
+        
+        
+class AlertCreate(BaseModel):
+    symbol: str
+    target_price: float
+    condition: str
+    
+    
+class AlertResponse(BaseModel):
+    id: int
+    symbol: str
+    target_price: float
+    condition: str
+    
+    class Config:
+        from_attributes = True

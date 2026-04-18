@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 
-from app import models, schemas, crud, stock_service, auth
+from app import models, schemas, crud, stock_service, auth, chart_service
 from app.db import SessionLocal, engine
 from app.scheduler import start_scheduler
 
@@ -124,7 +124,7 @@ def read_stock_by_symbol(
 
 
 # 1件ずつIDで取得
-@app.get("/stocks{stock_id}", response_model=schemas.StockResponse, tags=["stocks"])
+@app.get("/stocks/{stock_id}", response_model=schemas.StockResponse, tags=["stocks"])
 def read_stock_by_id(
     stock_id: int,
     db: Session = Depends(get_db),
@@ -170,6 +170,22 @@ def read_stocks(
     return result
 
 
+# グラフ追加
+@app.get("/stocks/chart/{symbol}", tags=["stocks"])
+def get_stock_chart(
+    symbol: str,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    stocks = crud.get_stock_prices(db, symbol, user.id)
+    
+    if not stocks:
+        raise HTTPException(status_code=404, detail="No data")
+    
+    filepath = chart_service.create_stock_chart(symbol, stocks)
+    return {"file_path": filepath}
+
+
 # 削除
 @app.delete("/stocks/{stock_id}", tags=["stocks"])
 def delete_stock(
@@ -182,7 +198,7 @@ def delete_stock(
     if not stock:
         raise HTTPException(status_code=404, detail="Stock not found")
     
-    return {"message": "Deleted successfully"}
+    return {"message": "Deleted"}
 
 
 # ウォッチリスト登録
@@ -237,5 +253,38 @@ def delete_watchlist(
     watch = crud.delete_watchlist(db, watch_id, user.id)
     
     if not watch:
+        raise HTTPException(status_code=404, detail="Not found")
+    return {"message": "Deleted"}
+
+
+# アラート登録
+@app.post("/alerts", response_model=schemas.AlertResponse, tags=["alerts"])
+def create_alert(
+    alert: schemas.AlertCreate,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    return crud.create_alert(db, alert, user.id)
+
+
+# アラート一覧
+@app.get("/alerts", response_model=list[schemas.AlertResponse], tags=["alerts"])
+def read_alerts(
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    return crud.get_alerts(db, user.id)
+
+
+# アラート削除
+@app.delete("/alerts/{alert_id}", tags=["alerts"])
+def delete_alert(
+    alert_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    alert = crud.delete_alert(db, alert_id, user.id)
+    
+    if not alert:
         raise HTTPException(status_code=404, detail="Not found")
     return {"message": "Deleted"}

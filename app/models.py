@@ -28,3 +28,13 @@ class WatchList(Base):
     id = Column(Integer, primary_key=True, index=True)
     symbol = Column(String, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
+    
+    
+class Alert(Base):
+    __tablename__ = "alerts"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    symbol = Column(String, index=True)
+    target_price = Column(Float)
+    condition = Column(String)
+    user_id = Column(Integer, ForeignKey("users.id"))
